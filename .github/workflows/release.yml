@@ -1,7 +1,7 @@
 name: Release
 
-# Every push to main runs the tests, builds a universal app, packs it into a disk image and publishes
-# it as a GitHub release tagged v<version in Info.plist>.<run number>, e.g. v1.0.12.
+# Every push to main runs the tests. When the version in Resources/Info.plist has no release yet, it also
+# builds a universal app, packs it into a disk image and publishes it as release v<version>, e.g. v1.0.2.
 on:
   push:
     branches: [main]
@@ -35,17 +35,23 @@ jobs:
           xcodebuild -version
           swiftc --version
 
-      - name: Pick version
+      - name: Check version
         id: version
         run: |
-          base=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
-          echo "version=$base.$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$version" > /dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::v$version is already released; bump CFBundleShortVersionString in Resources/Info.plist to release."
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Run tests
         run: ./build.sh --test
 
       - name: Import signing certificate
-        if: env.MACOS_CERTIFICATE_P12 != ''
+        if: steps.version.outputs.new == 'true' && env.MACOS_CERTIFICATE_P12 != ''
         run: |
           keychain="$RUNNER_TEMP/signing.keychain-db"
           keychain_password="$(uuidgen)"
@@ -62,6 +68,7 @@ jobs:
           echo "SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
 
       - name: Build universal app
+        if: steps.version.outputs.new == 'true'
         env:
           ARCHS: arm64 x86_64
           VERSION: ${{ steps.version.outputs.version }}
@@ -69,10 +76,11 @@ jobs:
         run: ./build.sh
 
       - name: Make disk image
+        if: steps.version.outputs.new == 'true'
         run: scripts/make-dmg.sh "build/World Clocks.app" "build/WorldClocks-${{ steps.version.outputs.version }}.dmg"
 
       - name: Notarize
-        if: env.SIGN_IDENTITY != '' && env.NOTARY_APPLE_ID != ''
+        if: steps.version.outputs.new == 'true' && env.SIGN_IDENTITY != '' && env.NOTARY_APPLE_ID != ''
         run: |
           dmg="build/WorldClocks-${{ steps.version.outputs.version }}.dmg"
           xcrun notarytool submit "$dmg" --apple-id "$NOTARY_APPLE_ID" --password "$NOTARY_PASSWORD" \
@@ -81,12 +89,13 @@ jobs:
           echo "NOTARIZED=1" >> "$GITHUB_ENV"
 
       - name: Publish release
+        if: steps.version.outputs.new == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           dmg="build/WorldClocks-$VERSION.dmg"
-          previous=$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2> /dev/null || true)
+          previous=$(git describe --tags --abbrev=0 --match 'v*' 2> /dev/null || true)
           {
             echo "## Install"
             echo
@@ -107,10 +116,5 @@ jobs:
             git log --format='- %s' ${previous:+"$previous"..}HEAD
           } > "$RUNNER_TEMP/notes.md"
 
-          if gh release view "v$VERSION" > /dev/null 2>&1; then
-            # A re-run of the same workflow run: replace the disk image.
-            gh release upload "v$VERSION" "$dmg" --clobber
-          else
-            gh release create "v$VERSION" "$dmg" --target "$GITHUB_SHA" \
-              --title "World Clocks $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
-          fi
+          gh release create "v$VERSION" "$dmg" --target "$GITHUB_SHA" \
+            --title "World Clocks $VERSION" --notes-file "$RUNNER_TEMP/notes.md"

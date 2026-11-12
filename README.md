@@ -67,7 +67,7 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it.
 
 ## Releases
 
-Every push to `main` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions. It runs the tests, builds a universal app for Apple silicon and Intel, packs it into a disk image with `scripts/make-dmg.sh`, and publishes a release. Releases are numbered from the version in `Resources/Info.plist` plus the workflow run number, such as v1.0.12. To start a new series, change the version there.
+Every push to `main` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions, which runs the tests. To publish a release, raise `CFBundleShortVersionString` in `Resources/Info.plist` (for example from 1.0.1 to 1.0.2) and push. When that version has no release yet, the workflow builds a universal app for Apple silicon and Intel, packs it into a disk image with `scripts/make-dmg.sh`, and publishes it as release v1.0.2.
 
 Out of the box, releases are signed ad hoc. To sign them with a Developer ID and have Apple notarize them, so they open without the extra step, add these repository secrets (Settings › Secrets and variables › Actions):
 
