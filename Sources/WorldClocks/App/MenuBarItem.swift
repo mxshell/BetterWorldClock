@@ -1,20 +1,20 @@
 import AppKit
 import SwiftUI
 
-/// The globe in the menu bar. Clicking it drops down the same clocks as the desktop widget.
+/// The dotted TIME mark in the menu bar. Clicking it drops down the same clocks as the desktop widget.
 @MainActor
 final class MenuBarItem: NSObject {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
 
     init(store: Store, openSettings: @escaping () -> Void) {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
         statusItem.autosaveName = "WorldClocksStatusItem"  // remembers its place if ⌘-dragged
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "World Clocks")
-            button.image?.isTemplate = true
+            button.image = DotMatrix.menuBarImage()
+            button.imagePosition = .imageOnly
             button.target = self
             button.action = #selector(togglePanel(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])

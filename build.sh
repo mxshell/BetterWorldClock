@@ -36,8 +36,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 swiftc -O "${SWIFT_FLAGS[@]}" -module-name WorldClocks -o "$APP/Contents/MacOS/WorldClocks" "${SOURCES[@]}"
 
-# The icon is drawn by a small Swift script the first time.
-if [ ! -f build/AppIcon.icns ]; then
+# The icon is drawn by a small Swift script, again whenever the script changes.
+if [ ! -f build/AppIcon.icns ] || [ Resources/make_icon.swift -nt build/AppIcon.icns ]; then
     swiftc -O Resources/make_icon.swift -o build/make_icon
     rm -rf build/AppIcon.iconset
     build/make_icon build/AppIcon.iconset
@@ -53,6 +53,7 @@ if [ "${1:-}" = "--install" ]; then
     pkill -x WorldClocks && sleep 1 || true
     rm -rf "/Applications/World Clocks.app"
     cp -R "$APP" /Applications/
+    touch "/Applications/World Clocks.app"  # nudges Finder to pick up a changed icon
     open "/Applications/World Clocks.app"
     echo "Installed and launched /Applications/World Clocks.app"
 fi

@@ -1,3 +1,5 @@
+<img src="docs/icon.png" alt="" width="128" align="right">
+
 # World Clocks
 
 A world clock for the macOS desktop and menu bar, for keeping track of several time zones at a glance.
@@ -15,7 +17,7 @@ A world clock for the macOS desktop and menu bar, for keeping track of several t
 - **Current weather** and temperature, in °C or °F.
 - A **countdown to the next sunrise or sunset**, calculated on your Mac. Cities where it's night are shaded, and neighbouring night rows join into one band.
 - A **UTC** row whenever none of your cities is on UTC+0.
-- Two places to see it: a Liquid Glass **desktop widget** that sits behind your windows on every Space, and a **menu bar** globe that drops down the same panel. The widget can be turned off.
+- Two places to see it: a Liquid Glass **desktop widget** that sits behind your windows on every Space, and a dotted **TIME** in the menu bar that drops down the same panel. The widget can be turned off.
 - Starts at login.
 
 ## Requirements
@@ -38,7 +40,7 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it. To
 ## Using it
 
 - **Desktop widget:** drag it anywhere. It remembers the spot, and grows downward from its top-left corner as you add cities.
-- **Menu bar:** click the globe to see the clocks over any window. ⌘-drag the globe to move it.
+- **Menu bar:** click TIME to see the clocks over any window. ⌘-drag it to move it.
 - **Right-click** the widget or the panel for quick options: show or hide the widget, weather, and sunrise and sunset; the time format; and the temperature unit.
 - **Settings…** (in either menu, or open the app again from Finder or Spotlight): search for cities to add, remove cities, and change the same options, plus launch at login.
 
@@ -51,7 +53,7 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it. To
 | Weather, city search, sunrise and sunset | `Sources/WorldClocks/Services` |
 | SwiftUI views | `Sources/WorldClocks/Views` |
 | Unit tests (Swift Testing) | `Tests/WorldClocksTests` |
-| `Info.plist` and the script that draws the icon | `Resources` |
+| `Info.plist` and the script that draws the app icon | `Resources` |
 
 - The desktop widget is a borderless window one level above the desktop icons, so app windows always cover it.
 - Weather for all cities comes from a single Open-Meteo request every 15 minutes, and again after the Mac wakes.
