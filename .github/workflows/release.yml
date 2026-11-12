@@ -1,0 +1,116 @@
+name: Release
+
+# Every push to main runs the tests, builds a universal app, packs it into a disk image and publishes
+# it as a GitHub release tagged v<version in Info.plist>.<run number>, e.g. v1.0.12.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # create tags and releases
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    env:
+      # Optional repository secrets for signing with a Developer ID and notarizing (see README).
+      # Without them the app is signed ad hoc, and macOS asks people to allow it once.
+      MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+      NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
+      NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history and tags, for the release notes
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swiftc --version
+
+      - name: Pick version
+        id: version
+        run: |
+          base=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+          echo "version=$base.$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        run: ./build.sh --test
+
+      - name: Import signing certificate
+        if: env.MACOS_CERTIFICATE_P12 != ''
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          echo "$MACOS_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | xargs)
+          identity=$(security find-identity -v -p codesigning "$keychain" | grep -o '"Developer ID Application: [^"]*"' | head -1 | tr -d '"')
+          if [ -z "$identity" ]; then echo "::warning::No Developer ID Application identity in the certificate; signing ad hoc."; fi
+          echo "SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+
+      - name: Build universal app
+        env:
+          ARCHS: arm64 x86_64
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./build.sh
+
+      - name: Make disk image
+        run: scripts/make-dmg.sh "build/World Clocks.app" "build/WorldClocks-${{ steps.version.outputs.version }}.dmg"
+
+      - name: Notarize
+        if: env.SIGN_IDENTITY != '' && env.NOTARY_APPLE_ID != ''
+        run: |
+          dmg="build/WorldClocks-${{ steps.version.outputs.version }}.dmg"
+          xcrun notarytool submit "$dmg" --apple-id "$NOTARY_APPLE_ID" --password "$NOTARY_PASSWORD" \
+            --team-id "$NOTARY_TEAM_ID" --wait
+          xcrun stapler staple "$dmg"
+          echo "NOTARIZED=1" >> "$GITHUB_ENV"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          dmg="build/WorldClocks-$VERSION.dmg"
+          previous=$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2> /dev/null || true)
+          {
+            echo "## Install"
+            echo
+            echo "1. Download **WorldClocks-$VERSION.dmg** below and open it."
+            echo "2. Drag **World Clocks** onto **Applications**."
+            echo "3. Open World Clocks from Applications. It shows up as **TIME** in the menu bar and as a widget on your desktop."
+            echo
+            if [ -z "${NOTARIZED:-}" ]; then
+              echo "> This build isn't notarized by Apple, so the first time you open it macOS says it can't verify the app."
+              echo "> Click **Done**, open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**."
+              echo "> You only need to do this once."
+              echo
+            fi
+            echo "Needs macOS 26 or later, on Apple silicon or Intel."
+            echo
+            echo "## Changes"
+            echo
+            git log --format='- %s' ${previous:+"$previous"..}HEAD
+          } > "$RUNNER_TEMP/notes.md"
+
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            # A re-run of the same workflow run: replace the disk image.
+            gh release upload "v$VERSION" "$dmg" --clobber
+          else
+            gh release create "v$VERSION" "$dmg" --target "$GITHUB_SHA" \
+              --title "World Clocks $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+          fi

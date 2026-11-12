@@ -20,12 +20,15 @@ A world clock for the macOS desktop and menu bar, for keeping track of several t
 - Two places to see it: a Liquid Glass **desktop widget** that sits behind your windows on every Space, and a dotted **TIME** in the menu bar that drops down the same panel. The widget can be turned off.
 - Starts at login.
 
-## Requirements
+## Download
 
-- macOS 26 or later
-- The Xcode Command Line Tools (`xcode-select --install`). Xcode itself isn't needed.
+Get the latest **WorldClocks-….dmg** from [Releases](https://github.com/mxshell/BetterWorldClock/releases/latest), open it and drag **World Clocks** onto **Applications**. It needs macOS 26 or later, on Apple silicon or Intel.
 
-## Build and install
+Unless a release says it's notarized, macOS can't verify the app the first time you open it. Click **Done**, then open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**. You only need to do this once.
+
+## Build from source
+
+You need macOS 26 or later and the Xcode Command Line Tools (`xcode-select --install`). Xcode itself isn't needed.
 
 ```bash
 ./build.sh            # builds build/World Clocks.app
@@ -33,7 +36,7 @@ A world clock for the macOS desktop and menu bar, for keeping track of several t
 ./build.sh --test     # runs the unit tests (swift test)
 ```
 
-The app is signed ad hoc, which is enough to run it on the Mac that built it. To hand it to someone else, sign it with a Developer ID and notarize it.
+The app is signed ad hoc, which is enough to run it on the Mac that built it.
 
 `Package.swift` also lets you open the project in Xcode or any editor with SwiftPM support.
 
@@ -54,11 +57,27 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it. To
 | SwiftUI views | `Sources/WorldClocks/Views` |
 | Unit tests (Swift Testing) | `Tests/WorldClocksTests` |
 | `Info.plist` and the script that draws the app icon | `Resources` |
+| Disk image packaging | `scripts` |
+| Release workflow | `.github/workflows` |
 
 - The desktop widget is a borderless window one level above the desktop icons, so app windows always cover it.
 - Weather for all cities comes from a single Open-Meteo request every 15 minutes, and again after the Mac wakes.
 - Sunrise and sunset come from the standard sunrise equation, accurate to a minute or two.
 - Foundation often has no abbreviation for a time zone (it says "GMT+8"), so common ones come from a small built-in table.
+
+## Releases
+
+Every push to `main` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions. It runs the tests, builds a universal app for Apple silicon and Intel, packs it into a disk image with `scripts/make-dmg.sh`, and publishes a release. Releases are numbered from the version in `Resources/Info.plist` plus the workflow run number, such as v1.0.12. To start a new series, change the version there.
+
+Out of the box, releases are signed ad hoc. To sign them with a Developer ID and have Apple notarize them, so they open without the extra step, add these repository secrets (Settings › Secrets and variables › Actions):
+
+| Secret | What it is |
+|---|---|
+| `MACOS_CERTIFICATE_P12` | Your **Developer ID Application** certificate and its private key, exported from Keychain Access as a .p12 file, then base64-encoded: `base64 -i certificate.p12 \| pbcopy` |
+| `MACOS_CERTIFICATE_PASSWORD` | The password you gave the .p12 file |
+| `NOTARY_APPLE_ID` | The Apple Account email of your developer account |
+| `NOTARY_PASSWORD` | An app-specific password for it, from [account.apple.com](https://account.apple.com) |
+| `NOTARY_TEAM_ID` | Your 10-character Team ID, from the Apple Developer website |
 
 ## Privacy
 
