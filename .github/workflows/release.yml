@@ -111,6 +111,11 @@ jobs:
             fi
             echo "Needs macOS 26 or later, on Apple silicon or Intel."
             echo
+            # Optional hand-written notes for this version.
+            if [ -f "release-notes/$VERSION.md" ]; then
+              cat "release-notes/$VERSION.md"
+              echo
+            fi
             echo "## Changes"
             echo
             git log --format='- %s' ${previous:+"$previous"..}HEAD
