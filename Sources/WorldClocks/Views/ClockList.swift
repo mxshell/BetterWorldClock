@@ -10,11 +10,18 @@ struct ClockList: View {
         let clocks = Clock.visible(store.cities, at: now)
         let sun = clocks.map { $0.nextSunEvent(after: now) }
         let night = sun.map(\.isNight)
+        // Columns are as wide as the widest value shown in any row, so values line up without big gaps.
+        let columns = DetailColumns(
+            temperatures: clocks.compactMap { store.weather[$0.id] }.map { store.unit.format($0.temperature) },
+            countdowns: sun.compactMap { $0.countdown(from: now) },
+            polarLabels: sun.compactMap(\.polarLabel)
+        )
         VStack(spacing: 0) {
             ForEach(Array(clocks.enumerated()), id: \.element.id) { index, clock in
                 let nightAbove = index > 0 && night[index - 1]
                 let nightBelow = index < clocks.count - 1 && night[index + 1]
-                ClockRow(clock: clock, now: now, weather: store.weather[clock.id], sun: sun[index], options: store.display)
+                ClockRow(clock: clock, now: now, weather: store.weather[clock.id], sun: sun[index], options: store.display,
+                         columns: columns)
                     .background {
                         // Neighbouring night rows join into one band, so the dark side of the world reads at a glance.
                         if night[index] {

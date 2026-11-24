@@ -6,6 +6,8 @@ struct ClockRow: View {
     let weather: Weather?
     let sun: SunEvent
     let options: DisplayOptions
+    /// What every row shows in its columns, so each row can make its columns just as wide.
+    var columns = DetailColumns()
 
     private var unit: TemperatureUnit { options.unit }
     private var showsDetails: Bool { options.showWeather || options.showSun }
@@ -59,7 +61,7 @@ struct ClockRow: View {
             VStack(alignment: .trailing, spacing: 1) {
                 timeText
                 if showsDetails {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
                         if options.showWeather { conditions }
                         if options.showSun { sunDetail }
                     }
@@ -153,8 +155,6 @@ struct ClockRow: View {
     // Weather and sun details sit in fixed-width columns so icons and values line up across rows.
     fileprivate static let iconWidth: CGFloat = 18
 
-    /// Widest plausible reading: -40…99 °C or -99…120 °F.
-    private var temperatureTemplate: String { unit == .celsius ? "-00°C" : "000°F" }
 
     @ViewBuilder private var conditions: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -164,10 +164,10 @@ struct ClockRow: View {
                     .symbolRenderingMode(.palette)
                     .foregroundStyle(colors.0, colors.1, colors.2)
                     .modifier(IconSlot())
-                column(unit.format(weather.temperature), template: temperatureTemplate)
+                column(unit.format(weather.temperature), widths: columns.temperatures)
             } else {
                 Color.clear.frame(width: Self.iconWidth, height: 1)
-                column("—", template: temperatureTemplate).foregroundStyle(.tertiary)
+                column("—", widths: columns.temperatures).foregroundStyle(.tertiary)
             }
         }
         .opacity(weather?.isStale == true ? 0.45 : 1)
@@ -176,17 +176,17 @@ struct ClockRow: View {
     /// Countdown to the next sunrise or sunset there: "☀︎↑ in 10h 38m".
     @ViewBuilder private var sunDetail: some View {
         switch sun {
-        case .sunrise(let date): sunLabel("sun.horizon", rising: true, countdown(to: date))
-        case .sunset(let date): sunLabel("sun.horizon", rising: false, countdown(to: date))
-        case .polarDay: sunLabel("sun.max", rising: nil, "polar day")
-        case .polarNight: sunLabel("moon", rising: nil, "polar night")
+        case .sunrise: sunLabel("sun.horizon", rising: true)
+        case .sunset: sunLabel("sun.horizon", rising: false)
+        case .polarDay: sunLabel("sun.max", rising: nil)
+        case .polarNight: sunLabel("moon", rising: nil)
         }
     }
 
     /// An outline sun on the horizon, an arrow for rising or setting, then the countdown.
     /// The sun and "in" use the secondary text colour, which always stands out from the glass behind,
     /// whatever the wallpaper. Only the arrow is coloured (orange up, pink down), deepened toward the text colour.
-    private func sunLabel(_ symbol: String, rising: Bool?, _ text: String) -> some View {
+    private func sunLabel(_ symbol: String, rising: Bool?) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 1) {
                 Image(systemName: symbol)
@@ -204,34 +204,64 @@ struct ClockRow: View {
                 }
                 .frame(width: 8)
             }
-            // Right-aligned and as wide as the longest wording, so countdowns line up from row to row.
+            // "in" sits right after the arrow and the countdown is right-aligned after it, so the gap after
+            // the arrow never changes and hours and minutes line up from row to row.
             ZStack(alignment: .trailing) {
-                Text("in 00h 00m").hidden()
-                Text("polar night").hidden()
-                if rising == nil {
-                    Text(text).foregroundStyle(.secondary)
+                ForEach(Array(Set(columns.polarLabels)).sorted(), id: \.self) { Text($0).hidden() }
+                inCountdown("").hidden()  // polar rows keep the same width as the others
+                if let label = sun.polarLabel {
+                    Text(label).foregroundStyle(.secondary)
                 } else {
-                    HStack(spacing: 3) {
-                        Text("in").foregroundStyle(.secondary)
-                        Text(text)
-                    }
+                    inCountdown(sun.countdown(from: now) ?? "")
                 }
             }
             .fixedSize()
         }
     }
 
-    /// Right-aligned text as wide as `template`, so values form a column.
-    private func column(_ text: String, template: String) -> some View {
-        Text(template)
-            .fixedSize()
-            .hidden()
-            .overlay(alignment: .trailing) { Text(text).lineLimit(1).fixedSize() }
+    private func inCountdown(_ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 3) {
+            Text("in").foregroundStyle(.secondary)
+            column(text, widths: columns.countdowns)
+        }
     }
 
-    private func countdown(to date: Date) -> String {
-        let minutes = max(0, Int(date.timeIntervalSince(now) / 60))
-        return minutes >= 60 ? "\(minutes / 60)h \(String(format: "%02d", minutes % 60))m" : "\(minutes)m"
+    /// Right-aligned text as wide as the widest of `widths` (and itself), so values form a column.
+    private func column(_ text: String, widths: [String]) -> some View {
+        ZStack(alignment: .trailing) {
+            ForEach(Array(Set(widths)).sorted(), id: \.self) { Text($0).hidden() }
+            Text(text)
+        }
+        .lineLimit(1)
+        .fixedSize()
+    }
+}
+
+/// The values shown in the shared columns across all rows; each row sizes its columns to the widest.
+struct DetailColumns {
+    var temperatures: [String] = []
+    var countdowns: [String] = []
+    var polarLabels: [String] = []
+}
+
+extension SunEvent {
+    /// "10h 38m" or "45m" until the sunrise or sunset; nil for polar day and night.
+    func countdown(from now: Date) -> String? {
+        switch self {
+        case .sunrise(let date), .sunset(let date):
+            let minutes = max(0, Int(date.timeIntervalSince(now) / 60))
+            return minutes >= 60 ? "\(minutes / 60)h \(String(format: "%02d", minutes % 60))m" : "\(minutes)m"
+        case .polarDay, .polarNight:
+            return nil
+        }
+    }
+
+    var polarLabel: String? {
+        switch self {
+        case .polarDay: "polar day"
+        case .polarNight: "polar night"
+        case .sunrise, .sunset: nil
+        }
     }
 }
 

@@ -33,6 +33,16 @@ struct SunTests {
         #expect(!SunEvent.polarDay.isNight)
     }
 
+    @Test func countdownWording() {
+        let now = date("2026-11-24T12:00:00Z")
+        #expect(SunEvent.sunrise(now.addingTimeInterval(10 * 3600 + 38 * 60)).countdown(from: now) == "10h 38m")
+        #expect(SunEvent.sunset(now.addingTimeInterval(2 * 3600 + 5 * 60)).countdown(from: now) == "2h 05m")
+        #expect(SunEvent.sunset(now.addingTimeInterval(45 * 60)).countdown(from: now) == "45m")
+        #expect(SunEvent.polarNight.countdown(from: now) == nil)
+        #expect(SunEvent.polarNight.polarLabel == "polar night")
+        #expect(SunEvent.sunrise(now).polarLabel == nil)
+    }
+
     @Test func utcFollowsGreenwich() {
         // 03:00 UTC in July is before sunrise in Greenwich; 12:00 UTC is broad daylight.
         #expect(Clock.utc.nextSunEvent(after: date("2026-07-01T03:00:00Z")).isNight)
