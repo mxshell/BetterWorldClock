@@ -183,12 +183,17 @@ struct ClockRow: View {
         }
     }
 
+    /// The arrow and horizon use the secondary text colour, which always stands out from the glass behind,
+    /// whatever the wallpaper. Only the sun carries colour, deepened slightly toward the text colour.
+    /// (A fixed faded colour was the same brightness as grey glass over a dark wallpaper and vanished.)
+    /// Single-layer symbols (the polar sun and moon) take the colour as a whole.
     private func sunLabel(_ symbol: String, _ color: Color, _ text: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
+        let tint = AnyShapeStyle(color.mix(with: .primary, by: 0.2))
+        return HStack(alignment: .firstTextBaseline, spacing: 4) {
             Image(systemName: symbol)
-                .symbolRenderingMode(.hierarchical)
-                // Faded toward grey (not transparency, which turns muddy on dark glass) so it doesn't compete with the weather icon.
-                .foregroundStyle(color.mix(with: .gray, by: 0.45))
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(symbol.hasPrefix("sunrise") || symbol.hasPrefix("sunset") ? AnyShapeStyle(.secondary) : tint,
+                                 tint, AnyShapeStyle(.secondary))
                 .fontWeight(.semibold)
                 .modifier(IconSlot())
             column(text, template: "00h 00m")
