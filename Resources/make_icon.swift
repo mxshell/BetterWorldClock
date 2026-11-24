@@ -1,36 +1,40 @@
 // Draws the app icon into an .iconset folder: swiftc make_icon.swift -o make_icon && ./make_icon <out.iconset>
 //
-// "TIME" in a dot matrix, stacked TI over ME on an 11×11 grid of dots, with a red status dot in the corner.
-// The letters match the horizontal menu bar mark in Sources/WorldClocks/Views/DotMatrix.swift.
+// A globe made of dots, half in daylight: bright dots on the day side, faint dots on the night side, and
+// the sunrise line between them in orange. The menu bar mark is the same globe, smaller
+// (Sources/WorldClocks/Views/DotMatrix.swift).
 import AppKit
 
-let glyphs: [Character: [String]] = [
-    "T": ["XXXXX", "..X..", "..X..", "..X..", "..X.."],
-    "I": ["XXX", ".X.", ".X.", ".X.", "XXX"],
-    "M": ["X...X", "XX.XX", "X.X.X", "X...X", "X...X"],
-    "E": ["XXXX", "X...", "XXX.", "X...", "XXXX"],
-]
+enum Dot { case day, sunrise, night }
 
-/// Lit cells as (column, row) from the top-left.
-func stamp(_ word: String, row: Int, into lit: inout Set<[Int]>) {
-    var x = 0
-    for character in word {
-        let glyph = glyphs[character]!
-        for (r, line) in glyph.enumerated() {
-            for (c, cell) in line.enumerated() where cell == "X" { lit.insert([x + c, row + r]) }
+/// The dots of an n×n globe, keyed by [column, row] from the top-left.
+func globe(_ n: Int) -> [[Int]: Dot] {
+    let centre = Double(n - 1) / 2, radius = Double(n) / 2 - 0.25
+    var dots: [[Int]: Dot] = [:]
+    for row in 0..<n {
+        for column in 0..<n {
+            let dx = Double(column) - centre, dy = Double(row) - centre
+            guard (dx * dx + dy * dy).squareRoot() <= radius else { continue }
+            // The day side bulges slightly past the middle, like a globe turned a little toward the sun.
+            dots[[column, row]] = dx <= 0.22 * (radius * radius - dy * dy).squareRoot() ? .day : .night
         }
-        x += glyph[0].count + 1
     }
+    for (cell, dot) in dots where dot == .day && dots[[cell[0] + 1, cell[1]]] == .night {
+        dots[cell] = .sunrise
+    }
+    return dots
 }
 
-let gridSize = 11
-var lit = Set<[Int]>()
-stamp("TI", row: 0, into: &lit)
-stamp("ME", row: 6, into: &lit)
-let accent = [gridSize - 1, 0]
-
 let ink = NSColor(srgbRed: 0.96, green: 0.96, blue: 0.94, alpha: 1)
-let red = NSColor(srgbRed: 1.0, green: 0.27, blue: 0.20, alpha: 1)
+let orange = NSColor(srgbRed: 1.0, green: 0.60, blue: 0.18, alpha: 1)
+
+func color(_ dot: Dot, nightAlpha: CGFloat) -> NSColor {
+    switch dot {
+    case .day: ink
+    case .sunrise: orange
+    case .night: ink.withAlphaComponent(nightAlpha)
+    }
+}
 
 func render(pixels: Int) -> Data {
     let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: pixels, pixelsHigh: pixels, bitsPerSample: 8,
@@ -41,22 +45,34 @@ func render(pixels: Int) -> Data {
     NSColor.clear.set()
     NSRect(x: 0, y: 0, width: pixels, height: pixels).fill(using: .copy)
 
-    // Tiny sizes get a pixel-aligned version: a larger tile, one solid square per lit dot, no unlit dots.
-    let tiny = pixels <= 32
+    // Up to 32 px the tile fills the canvas, so there is room for the globe.
     let n = CGFloat(pixels)
-    let tile = tiny ? NSRect(x: 1, y: 1, width: n - 2, height: n - 2)
-                    : NSRect(x: n * 100 / 1024, y: n * 100 / 1024, width: n * 824 / 1024, height: n * 824 / 1024)
+    let tile = pixels <= 32 ? NSRect(x: 1, y: 1, width: n - 2, height: n - 2)
+                            : NSRect(x: n * 100 / 1024, y: n * 100 / 1024, width: n * 824 / 1024, height: n * 824 / 1024)
     let shape = NSBezierPath(roundedRect: tile, xRadius: tile.width * 0.225, yRadius: tile.width * 0.225)
     NSGradient(colors: [NSColor(srgbRed: 0.045, green: 0.045, blue: 0.05, alpha: 1),
                         NSColor(srgbRed: 0.13, green: 0.13, blue: 0.145, alpha: 1)])!.draw(in: shape, angle: 90)
 
-    if tiny {
-        let pitch = floor(tile.width * 0.8 / CGFloat(gridSize))
-        let origin = ((n - pitch * CGFloat(gridSize)) / 2).rounded()
-        for cell in lit.union([accent]) {
-            (cell == accent ? red : ink).setFill()
-            NSRect(x: origin + CGFloat(cell[0]) * pitch, y: n - origin - CGFloat(cell[1] + 1) * pitch,
-                   width: pitch, height: pitch).fill()
+    if pixels <= 16 {
+        // Too small for dots: a solid half-lit disc with a one-pixel sunrise line.
+        let disc = NSRect(x: n / 2 - 5, y: n / 2 - 5, width: 10, height: 10)
+        NSBezierPath(ovalIn: disc).addClip()
+        color(.night, nightAlpha: 0.3).setFill()
+        disc.fill()
+        ink.setFill()
+        NSRect(x: disc.minX, y: disc.minY, width: 5, height: 10).fill()
+        orange.setFill()
+        NSRect(x: disc.minX + 5, y: disc.minY, width: 1, height: 10).fill()
+    } else if pixels <= 64 {
+        // Small: square dots snapped to whole pixels (2 px with a 1 px gap) so they stay crisp;
+        // a 7×7 globe at 32 px, the full 13×13 at 64 px.
+        let size = pixels <= 32 ? 7 : 13
+        let pitch: CGFloat = 3
+        let origin = ((n - (pitch * CGFloat(size) - 1)) / 2).rounded()
+        for (cell, dot) in globe(size) {
+            color(dot, nightAlpha: 0.26).setFill()
+            NSRect(x: origin + CGFloat(cell[0]) * pitch, y: n - origin - CGFloat(cell[1]) * pitch - (pitch - 1),
+                   width: pitch - 1, height: pitch - 1).fill()
         }
     } else {
         // A faint rim so the dark tile still has an edge on a dark Dock or desktop.
@@ -66,27 +82,15 @@ func render(pixels: Int) -> Data {
         rim.lineWidth = n * 3 / 1024
         rim.stroke()
 
-        let grid = tile.insetBy(dx: n * 132 / 1024, dy: n * 132 / 1024)
-        var pitch = grid.width / CGFloat(gridSize)
-        // Below a few pixels per dot, round dots blur into each other: snap square dots to whole pixels instead.
-        let snapped = pitch < 6
-        if snapped { pitch = floor(pitch) }
-        let left = snapped ? ((n - pitch * CGFloat(gridSize)) / 2).rounded() : grid.minX
-        let top = snapped ? n - left : grid.maxY
-        for row in 0..<gridSize {
-            for column in 0..<gridSize {
-                let cell = [column, row]
-                let isLit = lit.contains(cell) || cell == accent
-                (cell == accent ? red : isLit ? ink : ink.withAlphaComponent(0.13)).setFill()
-                let x = left + CGFloat(column) * pitch, y = top - CGFloat(row + 1) * pitch
-                if snapped {
-                    NSRect(x: x, y: y, width: pitch - 1, height: pitch - 1).fill()
-                } else {
-                    let diameter = pitch * (isLit ? 0.74 : 0.62)
-                    NSBezierPath(ovalIn: NSRect(x: x + (pitch - diameter) / 2, y: y + (pitch - diameter) / 2,
-                                                width: diameter, height: diameter)).fill()
-                }
-            }
+        let size = 13
+        let grid = tile.insetBy(dx: tile.width * 0.16, dy: tile.width * 0.16)
+        let pitch = grid.width / CGFloat(size)
+        for (cell, dot) in globe(size) {
+            let diameter = pitch * (dot == .night ? 0.62 : 0.74)
+            color(dot, nightAlpha: 0.16).setFill()
+            NSBezierPath(ovalIn: NSRect(x: grid.minX + (CGFloat(cell[0]) + 0.5) * pitch - diameter / 2,
+                                        y: grid.maxY - (CGFloat(cell[1]) + 0.5) * pitch - diameter / 2,
+                                        width: diameter, height: diameter)).fill()
         }
     }
     NSGraphicsContext.restoreGraphicsState()

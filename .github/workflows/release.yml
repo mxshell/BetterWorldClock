@@ -101,7 +101,7 @@ jobs:
             echo
             echo "1. Download **WorldClocks-$VERSION.dmg** below and open it."
             echo "2. Drag **World Clocks** onto **Applications**."
-            echo "3. Open World Clocks from Applications. It shows up as **TIME** in the menu bar and as a widget on your desktop."
+            echo "3. Open World Clocks from Applications. It shows up as a dotted globe in the menu bar and as a widget on your desktop."
             echo
             if [ -z "${NOTARIZED:-}" ]; then
               echo "> This build isn't notarized by Apple, so the first time you open it macOS says it can't verify the app."

@@ -108,7 +108,7 @@ struct SettingsView: View {
                     Button("Refresh") { store.refreshWeather() }
                         .disabled(!store.showWeather)
                 }
-                Text("Click TIME in the menu bar to see your clocks anytime. Drag the desktop widget to move it; right-click either one for quick options.")
+                Text("Click the globe in the menu bar to see your clocks anytime. Drag the desktop widget to move it; right-click either one for quick options.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } footer: {

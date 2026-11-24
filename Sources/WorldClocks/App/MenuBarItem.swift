@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// The dotted TIME mark in the menu bar. Clicking it drops down the same clocks as the desktop widget.
+/// The dotted globe in the menu bar. Clicking it drops down the same clocks as the desktop widget.
 @MainActor
 final class MenuBarItem: NSObject {
     private let statusItem: NSStatusItem
