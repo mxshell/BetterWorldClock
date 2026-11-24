@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "WorldClocks",
+    name: "BetterWorldClock",
     platforms: [.macOS("26.0")],
     targets: [
-        .executableTarget(name: "WorldClocks"),
-        .testTarget(name: "WorldClocksTests", dependencies: ["WorldClocks"]),
+        .executableTarget(name: "BetterWorldClock"),
+        .testTarget(name: "BetterWorldClockTests", dependencies: ["BetterWorldClock"]),
     ],
     swiftLanguageModes: [.v5]
 )

@@ -1,5 +1,5 @@
 import Foundation
-@testable import WorldClocks
+@testable import BetterWorldClock
 
 func date(_ iso: String) -> Date { ISO8601DateFormatter().date(from: iso)! }
 

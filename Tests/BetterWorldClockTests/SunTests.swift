@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import WorldClocks
+@testable import BetterWorldClock
 
 struct SunTests {
     /// San Francisco on the June solstice: sunrise 5:48 PDT (12:48 UTC), sunset 20:35 PDT (03:35 UTC next day).

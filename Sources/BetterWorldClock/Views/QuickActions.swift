@@ -22,6 +22,6 @@ struct QuickActions: View {
         Button("Refresh Weather") { store.refreshWeather() }
             .disabled(!store.showWeather)
         Divider()
-        Button("Quit World Clocks") { NSApp.terminate(nil) }
+        Button("Quit Better World Clock") { NSApp.terminate(nil) }
     }
 }

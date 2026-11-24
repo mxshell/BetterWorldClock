@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds "World Clocks.app" into ./build using only the Xcode Command Line Tools (no Xcode project).
+# Builds "Better World Clock.app" into ./build using only the Xcode Command Line Tools (no Xcode project).
 #
 #   ./build.sh            build the app
 #   ./build.sh --install  build, copy to /Applications and (re)launch it
@@ -18,7 +18,7 @@ ARCHS="${ARCHS:-$(uname -m)}"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"
 SWIFT_FLAGS=(-swift-version 5 -parse-as-library)
 SOURCES=()
-while IFS= read -r file; do SOURCES+=("$file"); done < <(find Sources/WorldClocks -name '*.swift' | sort)
+while IFS= read -r file; do SOURCES+=("$file"); done < <(find Sources/BetterWorldClock -name '*.swift' | sort)
 
 # A newer beta SDK can be the default while the compiler is older, which fails with "this SDK is not
 # supported by the compiler". Fall back to an installed macOS 26 SDK in that case.
@@ -38,18 +38,18 @@ if [ "${1:-}" = "--test" ]; then
     exec swift test
 fi
 
-APP="build/World Clocks.app"
+APP="build/Better World Clock.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 # One compile per architecture, then lipo them into a single (universal) executable.
 slices=()
 for arch in $ARCHS; do
-    swiftc -O "${SWIFT_FLAGS[@]}" -target "$arch-apple-macos26.0" -module-name WorldClocks \
-        -o "build/WorldClocks-$arch" "${SOURCES[@]}"
-    slices+=("build/WorldClocks-$arch")
+    swiftc -O "${SWIFT_FLAGS[@]}" -target "$arch-apple-macos26.0" -module-name BetterWorldClock \
+        -o "build/BetterWorldClock-$arch" "${SOURCES[@]}"
+    slices+=("build/BetterWorldClock-$arch")
 done
-lipo -create -output "$APP/Contents/MacOS/WorldClocks" "${slices[@]}"
+lipo -create -output "$APP/Contents/MacOS/BetterWorldClock" "${slices[@]}"
 rm -f "${slices[@]}"
 
 # The icon is drawn by a small Swift script, again whenever the script changes.
@@ -75,13 +75,13 @@ else
     # Hardened runtime and a secure timestamp are what notarization requires.
     codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
 fi
-echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/WorldClocks"))"
+echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/BetterWorldClock"))"
 
 if [ "${1:-}" = "--install" ]; then
-    pkill -x WorldClocks && sleep 1 || true
-    rm -rf "/Applications/World Clocks.app"
+    pkill -x BetterWorldClock && sleep 1 || true
+    rm -rf "/Applications/Better World Clock.app"
     cp -R "$APP" /Applications/
-    touch "/Applications/World Clocks.app"  # nudges Finder to pick up a changed icon
-    open "/Applications/World Clocks.app"
-    echo "Installed and launched /Applications/World Clocks.app"
+    touch "/Applications/Better World Clock.app"  # nudges Finder to pick up a changed icon
+    open "/Applications/Better World Clock.app"
+    echo "Installed and launched /Applications/Better World Clock.app"
 fi

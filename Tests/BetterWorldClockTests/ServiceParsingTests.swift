@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import WorldClocks
+@testable import BetterWorldClock
 
 struct WeatherParsingTests {
     private let fetched = Date(timeIntervalSince1970: 0)

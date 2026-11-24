@@ -11,7 +11,7 @@ final class MenuBarItem: NSObject {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
-        statusItem.autosaveName = "WorldClocksStatusItem"  // remembers its place if ⌘-dragged
+        statusItem.autosaveName = "BetterWorldClockStatusItem"  // remembers its place if ⌘-dragged
         if let button = statusItem.button {
             button.image = DotMatrix.menuBarImage()
             button.imagePosition = .imageOnly

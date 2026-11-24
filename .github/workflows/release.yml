@@ -77,12 +77,12 @@ jobs:
 
       - name: Make disk image
         if: steps.version.outputs.new == 'true'
-        run: scripts/make-dmg.sh "build/World Clocks.app" "build/WorldClocks-${{ steps.version.outputs.version }}.dmg"
+        run: scripts/make-dmg.sh "build/Better World Clock.app" "build/BetterWorldClock-${{ steps.version.outputs.version }}.dmg"
 
       - name: Notarize
         if: steps.version.outputs.new == 'true' && env.SIGN_IDENTITY != '' && env.NOTARY_APPLE_ID != ''
         run: |
-          dmg="build/WorldClocks-${{ steps.version.outputs.version }}.dmg"
+          dmg="build/BetterWorldClock-${{ steps.version.outputs.version }}.dmg"
           xcrun notarytool submit "$dmg" --apple-id "$NOTARY_APPLE_ID" --password "$NOTARY_PASSWORD" \
             --team-id "$NOTARY_TEAM_ID" --wait
           xcrun stapler staple "$dmg"
@@ -94,14 +94,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          dmg="build/WorldClocks-$VERSION.dmg"
+          dmg="build/BetterWorldClock-$VERSION.dmg"
           previous=$(git describe --tags --abbrev=0 --match 'v*' 2> /dev/null || true)
           {
             echo "## Install"
             echo
-            echo "1. Download **WorldClocks-$VERSION.dmg** below and open it."
-            echo "2. Drag **World Clocks** onto **Applications**."
-            echo "3. Open World Clocks from Applications. It shows up as a dotted globe in the menu bar and as a widget on your desktop."
+            echo "1. Download **BetterWorldClock-$VERSION.dmg** below and open it."
+            echo "2. Drag **Better World Clock** onto **Applications**."
+            echo "3. Open Better World Clock from Applications. It shows up as a dotted globe in the menu bar and as a widget on your desktop."
             echo
             if [ -z "${NOTARIZED:-}" ]; then
               echo "> This build isn't notarized by Apple, so the first time you open it macOS says it can't verify the app."
@@ -117,4 +117,4 @@ jobs:
           } > "$RUNNER_TEMP/notes.md"
 
           gh release create "v$VERSION" "$dmg" --target "$GITHUB_SHA" \
-            --title "World Clocks $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+            --title "Better World Clock $VERSION" --notes-file "$RUNNER_TEMP/notes.md"

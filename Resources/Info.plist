@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>World Clocks</string>
+    <string>Better World Clock</string>
     <key>CFBundleDisplayName</key>
-    <string>World Clocks</string>
+    <string>Better World Clock</string>
     <key>CFBundleIdentifier</key>
     <string>com.markhuang.WorldClocks</string>
     <key>CFBundleExecutable</key>
-    <string>WorldClocks</string>
+    <string>BetterWorldClock</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

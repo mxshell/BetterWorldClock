@@ -2,7 +2,7 @@
 //
 // A globe made of dots, half in daylight: bright dots on the day side, faint dots on the night side, and
 // the sunrise line between them in orange. The menu bar mark is the same globe, smaller
-// (Sources/WorldClocks/Views/DotMatrix.swift).
+// (Sources/BetterWorldClock/Views/DotMatrix.swift).
 import AppKit
 
 enum Dot { case day, sunrise, night }

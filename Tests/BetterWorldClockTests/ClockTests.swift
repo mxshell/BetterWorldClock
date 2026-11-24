@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import WorldClocks
+@testable import BetterWorldClock
 
 struct ClockTests {
     private let defaults: [City] = [.newYork, .sanFrancisco, .singapore, .london]

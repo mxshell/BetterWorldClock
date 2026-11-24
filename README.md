@@ -1,12 +1,12 @@
 <img src="docs/icon.png" alt="" width="128" align="right">
 
-# World Clocks
+# Better World Clock
 
-A world clock for the macOS desktop and menu bar, for keeping track of several time zones at a glance.
+A better world clock for the macOS desktop and menu bar, for keeping track of several time zones at a glance.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/preview-dark.png">
-  <img alt="World Clocks showing San Francisco, New York City, London and Singapore, with the three cities where it is night shaded together" src="docs/preview-light.png" width="474">
+  <img alt="Better World Clock showing San Francisco, New York City, London and Singapore, with the three cities where it is night shaded together" src="docs/preview-light.png" width="474">
 </picture>
 
 ## Features
@@ -22,7 +22,7 @@ A world clock for the macOS desktop and menu bar, for keeping track of several t
 
 ## Download
 
-Get the latest **WorldClocks-….dmg** from [Releases](https://github.com/mxshell/BetterWorldClock/releases/latest), open it and drag **World Clocks** onto **Applications**. It needs macOS 26 or later, on Apple silicon or Intel.
+Get the latest **BetterWorldClock-….dmg** from [Releases](https://github.com/mxshell/BetterWorldClock/releases/latest), open it and drag **Better World Clock** onto **Applications**. It needs macOS 26 or later, on Apple silicon or Intel.
 
 Unless a release says it's notarized, macOS can't verify the app the first time you open it. Click **Done**, then open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**. You only need to do this once.
 
@@ -31,7 +31,7 @@ Unless a release says it's notarized, macOS can't verify the app the first time 
 You need macOS 26 or later and the Xcode Command Line Tools (`xcode-select --install`). Xcode itself isn't needed.
 
 ```bash
-./build.sh            # builds build/World Clocks.app
+./build.sh            # builds build/Better World Clock.app
 ./build.sh --install  # also copies it to /Applications and launches it
 ./build.sh --test     # runs the unit tests (swift test)
 ```
@@ -51,11 +51,11 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it.
 
 | Part | Folder |
 |---|---|
-| Entry point, desktop widget window, menu bar item | `Sources/WorldClocks/App` |
-| Cities, clocks, time zone names, settings | `Sources/WorldClocks/Model` |
-| Weather, city search, sunrise and sunset | `Sources/WorldClocks/Services` |
-| SwiftUI views | `Sources/WorldClocks/Views` |
-| Unit tests (Swift Testing) | `Tests/WorldClocksTests` |
+| Entry point, desktop widget window, menu bar item | `Sources/BetterWorldClock/App` |
+| Cities, clocks, time zone names, settings | `Sources/BetterWorldClock/Model` |
+| Weather, city search, sunrise and sunset | `Sources/BetterWorldClock/Services` |
+| SwiftUI views | `Sources/BetterWorldClock/Views` |
+| Unit tests (Swift Testing) | `Tests/BetterWorldClockTests` |
 | `Info.plist` and the script that draws the app icon | `Resources` |
 | Disk image packaging | `scripts` |
 | Release workflow | `.github/workflows` |
@@ -81,7 +81,7 @@ Out of the box, releases are signed ad hoc. To sign them with a Developer ID and
 
 ## Privacy
 
-World Clocks has no accounts, analytics or tracking. It contacts two [Open-Meteo](https://open-meteo.com) services:
+Better World Clock has no accounts, analytics or tracking. It contacts two [Open-Meteo](https://open-meteo.com) services:
 
 - the forecast API, which receives the coordinates of your cities;
 - the geocoding API, which receives what you type into the city search.

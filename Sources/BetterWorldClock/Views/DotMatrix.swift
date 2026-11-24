@@ -44,7 +44,7 @@ enum DotMatrix {
             }
             return true
         }
-        image.accessibilityDescription = "World Clocks"
+        image.accessibilityDescription = "Better World Clock"
         return image
     }
 }

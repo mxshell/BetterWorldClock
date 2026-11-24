@@ -1,7 +1,7 @@
 #!/bin/bash
 # Packs an app into a drag-to-install disk image: the app next to a shortcut to /Applications.
 #
-#   scripts/make-dmg.sh "build/World Clocks.app" build/WorldClocks.dmg
+#   scripts/make-dmg.sh "build/Better World Clock.app" build/BetterWorldClock.dmg
 #
 # With SIGN_IDENTITY set (a Developer ID Application identity), the disk image is signed too.
 set -euo pipefail

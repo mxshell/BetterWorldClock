@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import WorldClocks
+@testable import BetterWorldClock
 
 struct TimeZoneNamesTests {
     @Test func offsetText() {
