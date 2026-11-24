@@ -24,7 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func showSettings() {
         if settingsWindow == nil {
             let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(store: store)))
-            window.title = "Better World Clock"
+            window.title = "World Clock+"
             window.styleMask = [.titled, .closable, .miniaturizable]
             window.isReleasedWhenClosed = false
             window.center()
@@ -39,7 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let main = NSMenu()
 
         let app = NSMenu()
-        app.addItem(withTitle: "Quit Better World Clock", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
+        app.addItem(withTitle: "Quit World Clock+", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
         main.addItem(submenu: app)
 
         let edit = NSMenu(title: "Edit")

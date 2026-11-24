@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds "Better World Clock.app" into ./build using only the Xcode Command Line Tools (no Xcode project).
+# Builds "World Clock+.app" into ./build using only the Xcode Command Line Tools (no Xcode project).
 #
 #   ./build.sh            build the app
 #   ./build.sh --install  build, copy to /Applications and (re)launch it
@@ -38,7 +38,7 @@ if [ "${1:-}" = "--test" ]; then
     exec swift test
 fi
 
-APP="build/Better World Clock.app"
+APP="build/World Clock+.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
@@ -79,9 +79,9 @@ echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/BetterWorldClock"))"
 
 if [ "${1:-}" = "--install" ]; then
     pkill -x BetterWorldClock && sleep 1 || true
-    rm -rf "/Applications/Better World Clock.app"
+    rm -rf "/Applications/World Clock+.app"
     cp -R "$APP" /Applications/
-    touch "/Applications/Better World Clock.app"  # nudges Finder to pick up a changed icon
-    open "/Applications/Better World Clock.app"
-    echo "Installed and launched /Applications/Better World Clock.app"
+    touch "/Applications/World Clock+.app"  # nudges Finder to pick up a changed icon
+    open "/Applications/World Clock+.app"
+    echo "Installed and launched /Applications/World Clock+.app"
 fi

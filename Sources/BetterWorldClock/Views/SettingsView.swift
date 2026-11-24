@@ -88,7 +88,7 @@ struct SettingsView: View {
                 Toggle("Launch at login", isOn: $store.launchAtLogin)
                 if store.loginItemNeedsApproval {
                     HStack {
-                        Text("Allow Better World Clock in Login Items to finish turning this on.")
+                        Text("Allow World Clock+ in Login Items to finish turning this on.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -115,7 +115,7 @@ struct SettingsView: View {
                 HStack {
                     Button("Reset to Default Cities…") { confirmingReset = true }
                     Spacer()
-                    Button("Quit Better World Clock") { NSApp.terminate(nil) }
+                    Button("Quit World Clock+") { NSApp.terminate(nil) }
                 }
             }
         }

@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Better World Clock</string>
+    <string>World Clock+</string>
     <key>CFBundleDisplayName</key>
-    <string>Better World Clock</string>
+    <string>World Clock+</string>
     <key>CFBundleIdentifier</key>
     <string>com.markhuang.WorldClocks</string>
     <key>CFBundleExecutable</key>

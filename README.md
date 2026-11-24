@@ -22,7 +22,9 @@ A better world clock for the macOS desktop and menu bar, for keeping track of se
 
 ## Download
 
-Get the latest **BetterWorldClock-….dmg** from [Releases](https://github.com/mxshell/BetterWorldClock/releases/latest), open it and drag **Better World Clock** onto **Applications**. It needs macOS 26 or later, on Apple silicon or Intel.
+Get the latest **BetterWorldClock-….dmg** from [Releases](https://github.com/mxshell/BetterWorldClock/releases/latest), open it and drag **World Clock+** onto **Applications**. It needs macOS 26 or later, on Apple silicon or Intel.
+
+The app itself is named **World Clock+**: "Better World Clock" is too long to show in full under an app icon on macOS.
 
 Unless a release says it's notarized, macOS can't verify the app the first time you open it. Click **Done**, then open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**. You only need to do this once.
 
@@ -31,7 +33,7 @@ Unless a release says it's notarized, macOS can't verify the app the first time 
 You need macOS 26 or later and the Xcode Command Line Tools (`xcode-select --install`). Xcode itself isn't needed.
 
 ```bash
-./build.sh            # builds build/Better World Clock.app
+./build.sh            # builds build/World Clock+.app
 ./build.sh --install  # also copies it to /Applications and launches it
 ./build.sh --test     # runs the unit tests (swift test)
 ```
