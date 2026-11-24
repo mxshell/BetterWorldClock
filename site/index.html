@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Better World Clock</title>
+  <meta name="description" content="A better world clock for your Mac's desktop and menu bar.">
+  <meta property="og:title" content="Better World Clock">
+  <meta property="og:description" content="A better world clock for your Mac's desktop and menu bar.">
+  <meta property="og:image" content="https://mxshell.dev/BetterWorldClock/preview-dark.png">
+  <meta property="og:url" content="https://mxshell.dev/BetterWorldClock/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #fafaf8;
+      --fg: #141414;
+      --muted: #6e6e6b;
+      --line: #e4e4e0;
+      --button-bg: #141414;
+      --button-fg: #fafaf8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0b0c;
+        --fg: #f1f1ee;
+        --muted: #8f8f8b;
+        --line: #232325;
+        --button-bg: #f1f1ee;
+        --button-fg: #0b0b0c;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    main { max-width: 32rem; margin: 0 auto; padding: 5rem 1rem 3rem; text-align: center; }
+    .icon { width: 104px; height: 104px; display: block; margin: 0 auto; }
+    h1 { font-size: 2rem; font-weight: 650; letter-spacing: -0.02em; margin-top: 1.25rem; }
+    .tagline { color: var(--muted); margin-top: 0.35rem; }
+    .download {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.8rem 1.6rem;
+      border-radius: 999px;
+      background: var(--button-bg);
+      color: var(--button-fg);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .download:hover { opacity: 0.85; }
+    .meta { color: var(--muted); font-size: 0.8125rem; margin-top: 0.8rem; }
+    .preview { margin-top: 3.5rem; }
+    .preview img { display: block; width: 100%; max-width: 474px; height: auto; margin: 0 auto; border-radius: 18px; }
+    .features { list-style: none; margin-top: 3rem; display: grid; gap: 0.4rem; }
+    .note {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line);
+    }
+    footer { color: var(--muted); font-size: 0.8125rem; margin-top: 1rem; }
+    footer a { color: inherit; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="icon" src="icon.png" alt="">
+    <h1>Better World Clock</h1>
+    <p class="tagline">A better world clock for your Mac's desktop and menu bar.</p>
+
+    <a class="download" id="download" href="https://github.com/mxshell/BetterWorldClock/releases/latest">Download for Mac</a>
+    <p class="meta"><span id="version"></span>Free · macOS 26 or later · Apple silicon and Intel</p>
+
+    <div class="preview">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="preview-dark.png">
+        <img src="preview-light.png" width="474" height="340"
+             alt="Better World Clock showing San Francisco, New York City, London and Singapore, with the cities where it is night shaded">
+      </picture>
+    </div>
+
+    <ul class="features">
+      <li>Your cities, in time zone order.</li>
+      <li>Weather, and the next sunrise or sunset.</li>
+      <li>On your desktop and in your menu bar.</li>
+    </ul>
+
+    <p class="note">Open the disk image and drag World Clock+ to Applications. The first time you open it, go to System Settings › Privacy &amp; Security and click Open Anyway.</p>
+    <footer>
+      <a href="https://github.com/mxshell/BetterWorldClock">Source on GitHub</a> · MIT License ·
+      Weather by <a href="https://open-meteo.com">Open-Meteo</a>
+    </footer>
+  </main>
+
+  <script>
+    // Point the button straight at the latest disk image and show its version.
+    // Without this (offline, rate limited, no JavaScript) the button opens the latest release page.
+    fetch("https://api.github.com/repos/mxshell/BetterWorldClock/releases/latest")
+      .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+      .then((release) => {
+        const dmg = release.assets.find((asset) => asset.name.endsWith(".dmg"));
+        if (dmg) document.getElementById("download").href = dmg.browser_download_url;
+        document.getElementById("version").textContent = "Version " + release.tag_name.replace(/^v/, "") + " · ";
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>

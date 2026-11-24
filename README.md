@@ -4,6 +4,8 @@
 
 A better world clock for the macOS desktop and menu bar, for keeping track of several time zones at a glance.
 
+**Website:** [mxshell.dev/BetterWorldClock](https://mxshell.dev/BetterWorldClock/)
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/preview-dark.png">
   <img alt="Better World Clock showing San Francisco, New York City, London and Singapore, with the three cities where it is night shaded together" src="docs/preview-light.png" width="474">
@@ -60,7 +62,8 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it.
 | Unit tests (Swift Testing) | `Tests/BetterWorldClockTests` |
 | `Info.plist` and the script that draws the app icon | `Resources` |
 | Disk image packaging | `scripts` |
-| Release workflow | `.github/workflows` |
+| Website (one page, no build step) | `site` |
+| Release and website workflows | `.github/workflows` |
 
 - The desktop widget is a borderless window one level above the desktop icons, so app windows always cover it.
 - Weather for all cities comes from a single Open-Meteo request every 15 minutes, and again after the Mac wakes.
