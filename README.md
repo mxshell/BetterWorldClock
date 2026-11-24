@@ -6,7 +6,7 @@ A world clock for the macOS desktop and menu bar, for keeping track of several t
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/preview-dark.png">
-  <img alt="World Clocks showing San Francisco, New York City, London and Singapore, with the three cities where it is night shaded together" src="docs/preview-light.png" width="464">
+  <img alt="World Clocks showing San Francisco, New York City, London and Singapore, with the three cities where it is night shaded together" src="docs/preview-light.png" width="474">
 </picture>
 
 ## Features
