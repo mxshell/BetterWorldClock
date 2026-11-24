@@ -173,30 +173,51 @@ struct ClockRow: View {
         .opacity(weather?.isStale == true ? 0.45 : 1)
     }
 
-    /// Countdown to the next sunrise or sunset there.
+    /// Countdown to the next sunrise or sunset there: "☀︎↑ in 10h 38m".
     @ViewBuilder private var sunDetail: some View {
         switch sun {
-        case .sunrise(let date): sunLabel("sunrise.fill", .orange, countdown(to: date))
-        case .sunset(let date): sunLabel("sunset.fill", .pink, countdown(to: date))
-        case .polarDay: sunLabel("sun.max.fill", .orange, "polar")
-        case .polarNight: sunLabel("moon.fill", .indigo, "polar")
+        case .sunrise(let date): sunLabel("sun.horizon", rising: true, countdown(to: date))
+        case .sunset(let date): sunLabel("sun.horizon", rising: false, countdown(to: date))
+        case .polarDay: sunLabel("sun.max", rising: nil, "polar day")
+        case .polarNight: sunLabel("moon", rising: nil, "polar night")
         }
     }
 
-    /// The arrow and horizon use the secondary text colour, which always stands out from the glass behind,
-    /// whatever the wallpaper. Only the sun carries colour, deepened slightly toward the text colour.
-    /// (A fixed faded colour was the same brightness as grey glass over a dark wallpaper and vanished.)
-    /// Single-layer symbols (the polar sun and moon) take the colour as a whole.
-    private func sunLabel(_ symbol: String, _ color: Color, _ text: String) -> some View {
-        let tint = AnyShapeStyle(color.mix(with: .primary, by: 0.2))
-        return HStack(alignment: .firstTextBaseline, spacing: 4) {
-            Image(systemName: symbol)
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(symbol.hasPrefix("sunrise") || symbol.hasPrefix("sunset") ? AnyShapeStyle(.secondary) : tint,
-                                 tint, AnyShapeStyle(.secondary))
-                .fontWeight(.semibold)
-                .modifier(IconSlot())
-            column(text, template: "00h 00m")
+    /// An outline sun on the horizon, an arrow for rising or setting, then the countdown.
+    /// The sun and "in" use the secondary text colour, which always stands out from the glass behind,
+    /// whatever the wallpaper. Only the arrow is coloured (orange up, pink down), deepened toward the text colour.
+    private func sunLabel(_ symbol: String, rising: Bool?, _ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 1) {
+                Image(systemName: symbol)
+                    .foregroundStyle(.secondary)
+                    .fontWeight(.semibold)
+                    .modifier(IconSlot())
+                Group {
+                    if let rising {
+                        Image(systemName: rising ? "arrow.up" : "arrow.down")
+                            .font(.system(size: 9, weight: .heavy))
+                            .foregroundStyle((rising ? Color.orange : .pink).mix(with: .primary, by: 0.2))
+                    } else {
+                        Color.clear.frame(height: 1)
+                    }
+                }
+                .frame(width: 8)
+            }
+            // Right-aligned and as wide as the longest wording, so countdowns line up from row to row.
+            ZStack(alignment: .trailing) {
+                Text("in 00h 00m").hidden()
+                Text("polar night").hidden()
+                if rising == nil {
+                    Text(text).foregroundStyle(.secondary)
+                } else {
+                    HStack(spacing: 3) {
+                        Text("in").foregroundStyle(.secondary)
+                        Text(text)
+                    }
+                }
+            }
+            .fixedSize()
         }
     }
 
