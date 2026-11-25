@@ -28,7 +28,7 @@ Get the latest **BetterWorldClock-….dmg** from [Releases](https://github.com/m
 
 The app itself is named **World Clock+**: "Better World Clock" is too long to show in full under an app icon on macOS.
 
-Unless a release says it's notarized, macOS can't verify the app the first time you open it. Click **Done**, then open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**. You only need to do this once.
+From 1.1.1 on, releases are signed with a Developer ID and notarized by Apple, so the app opens like any other. Older releases weren't: the first time you open one, click **Done**, then open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**.
 
 ## Build from source
 
