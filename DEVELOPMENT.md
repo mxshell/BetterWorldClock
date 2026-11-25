@@ -31,7 +31,7 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it. `b
 |---|---|
 | Entry point, desktop widget window, menu bar item | `Sources/BetterWorldClock/App` |
 | Cities, clocks, time zone names, settings | `Sources/BetterWorldClock/Model` |
-| Weather, city search, sunrise and sunset | `Sources/BetterWorldClock/Services` |
+| Weather, city search, sunrise and sunset, releases and self-update | `Sources/BetterWorldClock/Services` |
 | SwiftUI views | `Sources/BetterWorldClock/Views` |
 | Unit tests (Swift Testing) | `Tests/BetterWorldClockTests` |
 | `Info.plist` and the script that draws the app icon | `Resources` |
@@ -49,11 +49,13 @@ The app is signed ad hoc, which is enough to run it on the Mac that built it. `b
 - Sunrise and sunset come from the standard sunrise equation, accurate to a minute or two.
 - Foundation often has no abbreviation for a time zone (it says "GMT+8"), so common ones come from a small built-in table.
 - Settings and the last weather are stored in user defaults under `com.markhuang.WorldClocks`.
+- Updates: once a day `Updater` asks the GitHub API for the latest release. To install one, `SelfUpdate` downloads the release's `.zip` (not the disk image, which would have to be mounted, and macOS can ask before an app reads a mounted disk image), unpacks it next to the app, and checks that the new app meets the running app's designated requirement: same bundle identifier, signed with a Developer ID by the same team. It also checks the version matches. Then it swaps the new app into place and relaunches.
+- A copy that can't replace itself opens the release page instead. That covers builds from source (signed ad hoc), copies run from the disk image, and folders the user can't write to.
 - Open-Meteo's free API is for non-commercial use, and its data is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), so the app and website credit it.
 
 ## Releases
 
-Every push to `main` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions, which runs the tests. To publish a release, raise `CFBundleShortVersionString` in `Resources/Info.plist` (for example from 1.1.1 to 1.1.2) and push. When that version has no release yet, the workflow builds a universal app for Apple silicon and Intel, packs it into a disk image with `scripts/make-dmg.sh`, and publishes it as release v1.1.2.
+Every push to `main` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions, which runs the tests. To publish a release, raise `CFBundleShortVersionString` in `Resources/Info.plist` (for example from 1.1.1 to 1.1.2) and push. When that version has no release yet, the workflow builds a universal app for Apple silicon and Intel, packs it into a disk image with `scripts/make-dmg.sh`, and publishes it as release v1.1.2 with two files: the disk image for people to download, and a zip of the app for the in-app updater.
 
 The release page gets install steps and the list of commits since the last release. To add your own notes for a version, write them in `release-notes/<version>.md` (for example `release-notes/1.1.2.md`) before you push.
 

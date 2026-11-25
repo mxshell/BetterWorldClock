@@ -3,6 +3,7 @@ import ServiceManagement
 
 struct SettingsView: View {
     @ObservedObject var store: Store
+    @ObservedObject private var updater = Updater.shared
     @State private var query = ""
     @State private var results: [City] = []
     @State private var isSearching = false
@@ -99,6 +100,17 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Updates") {
+                HStack {
+                    Text("World Clock+ \(updater.currentVersion)")
+                    Spacer()
+                    Button("Check Now") { updater.check() }
+                        .disabled(updater.isBusy)
+                }
+                Toggle("Check for updates automatically", isOn: $updater.checksAutomatically)
+                updateStatus
+            }
+
             Section {
                 HStack {
                     Text(weatherStatus)
@@ -127,6 +139,41 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 460, height: 700)
         .task(id: query) { await search() }
+    }
+
+    @ViewBuilder private var updateStatus: some View {
+        switch updater.status {
+        case .unknown:
+            EmptyView()
+        case .checking:
+            HStack {
+                ProgressView().controlSize(.small)
+                Text("Checking…").font(.caption).foregroundStyle(.secondary)
+            }
+        case .upToDate:
+            Text("You're up to date.").font(.caption).foregroundStyle(.secondary)
+        case .available(let release):
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Version \(release.version) is available.")
+                    Link("What's new", destination: release.page).font(.caption)
+                }
+                Spacer()
+                Button(updater.canInstall(release) ? "Install and Relaunch" : "Download") { updater.install() }
+            }
+            if !updater.canInstall(release) {
+                Text("World Clock+ can't install this update itself, so Download opens the release page.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        case .installing(let release):
+            HStack {
+                ProgressView().controlSize(.small)
+                Text("Downloading and installing version \(release.version)…").font(.caption).foregroundStyle(.secondary)
+            }
+        case .failed(let message):
+            Text(message).font(.caption).foregroundStyle(.secondary)
+        }
     }
 
     private var sortedCities: [City] {

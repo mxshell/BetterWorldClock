@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarItem = MenuBarItem(store: store, openSettings: { [weak self] in self?.showSettings() })
         desktopWidget = DesktopWidget(store: store, openSettings: { [weak self] in self?.showSettings() })
         store.start()
+        Updater.shared.start()
     }
 
     /// Opening the app again from Finder or Spotlight brings up Settings.

@@ -88,6 +88,16 @@ jobs:
           xcrun stapler staple "$dmg"
           echo "NOTARIZED=1" >> "$GITHUB_ENV"
 
+      - name: Make update archive
+        if: steps.version.outputs.new == 'true'
+        run: |
+          # The app's built-in updater downloads this zip instead of the disk image. The ticket from notarizing
+          # the disk image covers the app too, so staple it to the app as well; the updater doesn't need it.
+          if [ -n "${NOTARIZED:-}" ]; then
+            xcrun stapler staple "build/World Clock+.app" || echo "::warning::Couldn't staple the ticket to the app."
+          fi
+          ditto -c -k --keepParent "build/World Clock+.app" "build/BetterWorldClock-${{ steps.version.outputs.version }}.zip"
+
       - name: Publish release
         if: steps.version.outputs.new == 'true'
         env:
@@ -109,7 +119,7 @@ jobs:
               echo "> You only need to do this once."
               echo
             fi
-            echo "Needs macOS 26 or later, on Apple silicon or Intel."
+            echo "Needs macOS 26 or later, on Apple silicon or Intel. Already have World Clock+ 1.2.0 or later? It updates itself. (The .zip is what it downloads.)"
             echo
             # Optional hand-written notes for this version.
             if [ -f "release-notes/$VERSION.md" ]; then
@@ -121,5 +131,5 @@ jobs:
             git log --format='- %s' ${previous:+"$previous"..}HEAD
           } > "$RUNNER_TEMP/notes.md"
 
-          gh release create "v$VERSION" "$dmg" --target "$GITHUB_SHA" \
+          gh release create "v$VERSION" "$dmg" "build/BetterWorldClock-$VERSION.zip" --target "$GITHUB_SHA" \
             --title "Better World Clock $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
