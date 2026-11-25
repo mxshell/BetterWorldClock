@@ -18,7 +18,7 @@ jobs:
   release:
     runs-on: macos-26
     env:
-      # Optional repository secrets for signing with a Developer ID and notarizing (see README).
+      # Optional repository secrets for signing with a Developer ID and notarizing (see DEVELOPMENT.md).
       # Without them the app is signed ad hoc, and macOS asks people to allow it once.
       MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
       MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
