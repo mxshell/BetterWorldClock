@@ -6,7 +6,11 @@ struct Weather: Codable {
     var isDay: Bool
     var fetched: Date
 
-    var isStale: Bool { Date().timeIntervalSince(fetched) > 2 * 3600 }
+    /// How old the weather may get before the app fetches it again.
+    static let refreshInterval: TimeInterval = 2 * 3600
+
+    /// Shown faded once a refresh is an hour overdue, for example while offline.
+    var isStale: Bool { Date().timeIntervalSince(fetched) > Self.refreshInterval + 3600 }
 
     var symbolName: String {
         switch code {

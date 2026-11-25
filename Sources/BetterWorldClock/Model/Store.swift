@@ -72,16 +72,18 @@ final class Store: ObservableObject {
     }
 
     func start() {
-        refreshWeather()
+        refreshWeatherIfDue()
+        // Checks every 15 minutes and fetches only once the weather is old enough. Comparing dates, rather
+        // than waiting on a 2-hour timer, also counts the time the Mac spent asleep.
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 15 * 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.refreshWeather() }
+            Task { @MainActor in self?.refreshWeatherIfDue() }
         }
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(10))  // give the network a moment after wake
-                self?.refreshWeather()
+                self?.refreshWeatherIfDue()
             }
         }
         if !defaults.bool(forKey: Key.loginItemSetUp) {
@@ -116,6 +118,16 @@ final class Store: ObservableObject {
 
     // MARK: Weather
 
+    /// Fetches the weather when a city has none yet, or its weather is `Weather.refreshInterval` old.
+    func refreshWeatherIfDue() {
+        let due = cities.contains { city in
+            guard let fetched = weather[city.id]?.fetched else { return true }
+            return Date().timeIntervalSince(fetched) >= Weather.refreshInterval
+        }
+        if due { refreshWeather() }
+    }
+
+    /// Fetches the weather for all cities now, in one request.
     func refreshWeather() {
         weatherTask?.cancel()
         guard showWeather else { return }  // no network calls while weather is hidden

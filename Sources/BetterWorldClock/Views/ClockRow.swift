@@ -156,9 +156,17 @@ struct ClockRow: View {
     fileprivate static let iconWidth: CGFloat = 18
 
 
+    /// The weather, with day or night taken from the sun calculation. The forecast's own day/night flag is as
+    /// old as the last fetch, so the icon could show a sun for up to two hours after sunset.
+    private var currentWeather: Weather? {
+        guard var weather else { return nil }
+        weather.isDay = !sun.isNight
+        return weather
+    }
+
     @ViewBuilder private var conditions: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
-            if let weather {
+            if let weather = currentWeather {
                 let colors = weather.palette
                 Image(systemName: weather.symbolName)
                     .symbolRenderingMode(.palette)
